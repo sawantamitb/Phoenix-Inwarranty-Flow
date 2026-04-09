@@ -1,0 +1,29 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '16.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    npm install -g newman
+    npm install -g newman-reporter-htmlextra
+  displayName: 'Install Newman'
+
+- script: |
+    newman run $(System.DefaultWorkingDirectory)/your-collection.json \
+    --environment $(System.DefaultWorkingDirectory)/your-environment.json \
+    --reporters cli,htmlextra \
+    --reporter-htmlextra-export $(System.DefaultWorkingDirectory)/newman-report.html
+  displayName: 'Run Postman Collection'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'newman-*.xml'
+  condition: always()
